@@ -107,40 +107,70 @@ select TotalTrackCredits(9);
 delimiter $$
 drop function if exists TotalNumberOfTrackCourses $$
     
-create function TotalNumberOfTrackCourses()
+create function TotalNumberOfTrackCourses(trackid int)
 returns int
 begin
-	-- kóði hér...
+	return (select count(courseNumber) from TrackCourses 
+    where trackID = trackid);
 end $$
 delimiter ;
 
-/*
+select TotalNumberOfTrackCourses(9);
+
+
 -- 9:
 -- Fallið skilar true ef áfanginn finnst í töflunni TrackCourses
 delimiter $$
 drop function if exists CourseInUse $$
     
-create function CourseInUse()
+create function CourseInUse(crsnumber char(10))
 returns int
 begin
-	-- kóði hér...
+	if exists(select courseNumber from TrackCourses where courseNumber = crsnumber)
+    then return true;
+    else return false;
+    end if;
 end $$
 delimiter ;
+
+select CourseInUse('EÐL203');
 
 
 -- 10:
 -- Fallið skilar true ef +arið er hlaupár annars false
+-- version 1
+delimiter $$
+drop function if exists IsLeapyear $$
+
+create function IsLeapYear(theyear year)
+returns boolean
+begin
+	if theyear % 4 = 0 
+    then return true;
+    else return false;
+    end if;
+end $$
+delimiter ;
+
+SELECT ISLEAPYEAR(2020);
+
+-- version 2
 delimiter $$
 drop function if exists IsLeapyear $$
 
 create function IsLeapYear()
 returns boolean
 begin
-	-- kóði hér...
+	if year(current_date()) % 4 = 0 
+    then return true;
+    else return false;
+    end if;
 end $$
 delimiter ;
 
+select IsLeapYear();
 
+/*
 -- 11:
 -- Fallið reiknar út og skilar aldri ákveðins nemanda
 delimiter $$
