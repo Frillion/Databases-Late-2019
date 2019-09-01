@@ -170,31 +170,35 @@ delimiter ;
 
 select IsLeapYear();
 
-/*
 -- 11:
 -- Fallið reiknar út og skilar aldri ákveðins nemanda
 delimiter $$
 drop function if exists StudentAge $$
-    
-create function StudentAge()
+
+create function StudentAge(stnid int)
 returns int
 begin
-	-- kóði hér...
+	return(select datediff(current_date(),dob)/365 from students where studentID = stnid);
 end $$
 delimiter ;
+
+select StudentAge(1);
 
 -- 12:
 -- Fallið skilar fjölda þeirra eininga sem nemandinn hefur tekið(lokið)
 delimiter $$
 drop function if exists StudentCredits $$
     
-create function StudentCredits()
+create function StudentCredits(stnid int)
 returns int
 begin
-	-- kóði hér...
+	return(select sum(courses.courseCredits) from courses join trackcourses on courses.courseNumber = trackcourses.courseNumber join registration on trackcourses.courseNumber = registration.courseNumber where registration.passed = 1 and registration.studentID = stnid);
 end $$
 delimiter ;
 
+select StudentCredits(2);
+
+/*
 -- 13:
 -- Hér þarf að skila Brautarheiti, heiti námsleiðar(Track) og fjölda áfanga
 -- Aðeins á að birta upplýsingar yfir brautir sem hafa námsleiðir sem innihalda áfanga.
@@ -206,7 +210,7 @@ begin
 	-- kóði hér...
 end $$
 delimiter ;
-
+*/
 
 -- 14:
 -- Hér þarf skila lista af öllum áföngum ásamt restrictorum og tegund þeirra.
@@ -216,11 +220,11 @@ drop procedure if exists CourseRestrictorList $$
 
 create procedure CourseRestrictorList()
 begin
-	-- kóði hér...
+	
 end $$
 delimiter ;
 
-
+/*
 -- 15:
 -- RestrictorList birtir upplýsingar um alla restrictora ásamt áföngum.
 -- Með öðrum orðum: Gemmér alla restrictora(undanfara, samfara) og þá áfanga sem þeir hafa áhrif á.
