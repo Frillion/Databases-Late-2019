@@ -220,9 +220,11 @@ drop procedure if exists CourseRestrictorList $$
 
 create procedure CourseRestrictorList()
 begin
-	
+	select courses.courseNumber,courseName,courseCredits,restrictorID,restrictorType  from courses join restrictors on  courses.courseNumber = restrictors.courseNumber ;
 end $$
 delimiter ;
+
+call CourseRestrictorList();
 
 /*
 -- 15:
