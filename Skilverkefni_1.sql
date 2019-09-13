@@ -37,19 +37,20 @@ begin
 end $$
 delimiter ;
 
-/*
+
 -- 4:
 -- Uppfærið réttan kúrs.
 -- row_count() fallið er hér notað til að birta fjölda raða sem voru uppfærðar.
 delimiter $$
 drop procedure if exists UpdateCourse $$
 
-create procedure UpdateCourse()
+create procedure UpdateCourse(crsnumb char(10),newcredits int)
 begin
-	
+	update courses
+    set courseCredits = newcredits
+    where courseNumber = crsnumb;
 end $$
 delimiter ;
-*/
 
 -- 5:
 -- ATH: Ef verið er að nota áfangann einhversstaðar(sé hann skráður á TrackCourses töfluna) þá má EKKI eyða honum.
@@ -198,19 +199,6 @@ delimiter ;
 
 select StudentCredits(2);
 
-/*
--- 13:
--- Hér þarf að skila Brautarheiti, heiti námsleiðar(Track) og fjölda áfanga
--- Aðeins á að birta upplýsingar yfir brautir sem hafa námsleiðir sem innihalda áfanga.
-delimiter $$
-drop procedure if exists TrackTotalCredits $$
-
-create procedure TrackTotalCredits()
-begin
-	-- kóði hér...
-end $$
-delimiter ;
-*/
 
 -- 14:
 -- Hér þarf skila lista af öllum áföngum ásamt restrictorum og tegund þeirra.
@@ -220,13 +208,16 @@ drop procedure if exists CourseRestrictorList $$
 
 create procedure CourseRestrictorList()
 begin
-	select courses.courseNumber,courseName,courseCredits,restrictorID,restrictorType  from courses join restrictors on  courses.courseNumber = restrictors.courseNumber ;
+	select courses.courseNumber,courseName,restrictorID,restrictorType  from courses 
+    left outer join restrictors 
+    on  courses.courseNumber = restrictors.courseNumber 
+    order by restrictorType ;
 end $$
 delimiter ;
 
 call CourseRestrictorList();
 
-/*
+
 -- 15:
 -- RestrictorList birtir upplýsingar um alla restrictora ásamt áföngum.
 -- Með öðrum orðum: Gemmér alla restrictora(undanfara, samfara) og þá áfanga sem þeir hafa áhrif á.
@@ -235,7 +226,12 @@ drop procedure if exists RestrictorList $$
 
 create procedure RestrictorList()
 begin
-	-- kóði hér...
+	select courses.courseNumber,courseName,restrictorID,restrictorType  from courses
+	left outer join restrictors 
+    on  courses.courseNumber = restrictors.courseNumber
+    where restrictorType is not null
+    order by restrictorType;
 end $$
 delimiter ;
-*/
+
+call RestrictorList();
