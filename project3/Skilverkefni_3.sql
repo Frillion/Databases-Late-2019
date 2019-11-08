@@ -35,9 +35,9 @@ begin
     stn_loop:loop
 		fetch stnCursor into fn,ln,dateofbirth;
         if (select JSON_LENGTH(stnarray) < 1) then
-			select JSON_ARRAY((select JSON_OBJECT('firstname',fn,'lastname',ln,'dob',dateofbirth))) into stnarray;
+			select JSON_ARRAY((select JSON_OBJECT('dob',dateofbirth,'lastname',ln,'firstname',fn))) into stnarray;
         else
-			select JSON_ARRAY_APPEND(stnarray,"$",(select JSON_OBJECT("firstname",fn,"lastname",ln,"dob",dateofbirth))) into stnarray;
+			select JSON_ARRAY_APPEND(stnarray,"$",(select JSON_OBJECT("dob",dateofbirth,"lastname",ln,"firstname",fn))) into stnarray;
         end if;
         if done then
 			select stnarray;
@@ -75,7 +75,55 @@ Call StudentListJson();
 		]
 	}
 */
+delimiter $$
+drop procedure if exists SingleStudentJson $$
+create procedure SingleStudentJson(id int(11))
+begin
+declare stnid int(11);
+declare fn varchar(55);
+declare ln varchar(55);
+declare date_o_b Date;
+declare coursenr char(10);
+declare coursecrdts tinyint(4);
+declare pass tinyint(1);
 
+declare count int(2);
+
+declare singlestudentjson JSON;
+
+declare done int default false;
+    declare stnCursor cursor for 
+select students.studentID,firstName,lastName,dob,registration.courseNumber,courses.courseCredits,registration.passed 
+from Students
+join registration on students.studentID = registration.studentID
+join trackcourses on registration.trackID = trackcourses.trackID
+join Courses on  trackcourses.courseNumber = courses.courseNumber
+where students.studentID = id;
+    
+    declare continue handler for not found set done = true;
+    open stnCursor;
+    
+set count = 0;
+    stnloop:loop
+		
+		fetch stncursor into  stnid,fn,ln,date_o_b,coursenr,coursecrdts,pass;
+        if count < 1
+        then
+        select JSON_OBJECT("student_id",stnid,"first_name",fn,"last_name",ln,"date_of_birth",date_o_b,"courses",JSON_ARRAY(JSON_OBJECT("course_number",coursenr,"course_credits",coursecrdts,"status",pass))) into singlestudentjson;
+        Set @count = count + 1;
+        else
+        select JSON_ARRAY_APPEND(@singlestudentjson,"$.courses",JSON_OBJECT("course_number",coursenr,"course_credits",coursecrdts,"status",pass)) into @singlestudentjson;
+        end if;
+		if done then
+			select singlestudentjson;	
+			leave stnloop;
+            close stnCursor;
+		end if;
+	end loop;
+  
+end$$
+delimiter ;
+Call SingleStudentJson(1);
 /*
 	3:
 	Skrifið stored procedure: SemesterInfoJSon() sem birtir uplýsingar um ákveðið semester.
